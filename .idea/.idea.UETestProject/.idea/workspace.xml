@@ -6,8 +6,165 @@
     <projectFile>Intermediate/ProjectFiles/UE5.vcxproj</projectFile>
     <projectFile>Intermediate/ProjectFiles/UETestProject.vcxproj</projectFile>
   </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="6cbfc0c0-1037-4f99-ad6c-f6b9f4383103" name="Changes" comment="" />
+    <list default="true" id="6cbfc0c0-1037-4f99-ad6c-f6b9f4383103" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Content/ChaosVehicle/ChaosVehicle.umap" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/ChaosVehicle/ChaosVehicle_HLOD0_Instancing.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/ChaosVehicle/Vehicle/EngineTorque.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/ChaosVehicle/Vehicle/Wheel_Front.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/ChaosVehicle/Vehicle/Wheel_Rear.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/MassTest/BP_MassActor.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/0/9U/CYF2BE76ROVPOLCMEDFMKM.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/0/AO/AVOPXMHEL3ZGC3HVWAYZEF.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/0/KQ/ARBGN6WSS6OLULFK30COOM.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/0/N6/71JJ75PAZ5NGQX6V2KU7YG.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/0/PB/82VMAAAN95WRHP1WMZT1JS.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/0/RN/I2IS9ZPDQHLNN04JDMPO25.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/0L/E7SKYYUCKQSA1Y5GAR5ORK.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/1W/XI818CTC51DRUTGRR5VEK1.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/2C/C51F3NN8VXPCPAHJBYM11I.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/58/P5BVBHLWG4RKCVJEZ9JIP9.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/6M/6L80HLHD23T5N804NN4QLB.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/7P/ROQFG8NMT2P1JY1X72U8MU.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/IL/OMZIYTFBGCWCV7ZUQVNOXQ.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/Q1/NKBWJNUA8C1Y0DGSUF3KOI.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/R9/54ITN89HWJJ9XL65BFJAHO.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/SG/O32EFYJCNZB4DFAF1M8TM0.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/T2/7F71M0P9GITILK7R87DX4S.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/U0/2NX2VNHXGXMZOTSED70VD8.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/VF/OP587EJ6ILOE4UQMAMZEH5.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/1/ZO/BODQVLGI4ZXLMOLQFQL1ZB.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/2/0C/3KSOVBQJQVJ3L2H5GKAA3V.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/2/16/CAWC2ISXXJARNZ4XAJ2QBM.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/2/DL/5715XQSKOCM58QYZYTO6YH.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/2/P9/VBBVBAVKG518PY7VGZZGBQ.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/2/QM/2APT6T5B4ZVO5UV7BLN9JY.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/2/RO/KDLRN26W3EWF7R729LF2K5.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/2/SZ/1X9I469OXHMFQUJBPA25IY.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/2/TI/DR3PSO5UIQPFHZRHTLK5EM.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/3/17/B5RMY8ARMETK34S0QU48XZ.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/3/DE/GZNQA3GF15YKD8FUC83OK7.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/3/OO/ZVPVZBRM70GIB273R8W948.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/3/RT/HC2R50KZRI6G2IY91KD1PL.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/3/SH/H5VIFQ5H8AP0J5EGGO5JF6.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/1J/QJAO3L89QUICXT4V3US7X5.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/66/GD3LLA9UG790F4YW6PHFVC.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/76/2FOCXWQ88LYDZ52RK1X2OW.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/8U/NIV2F02U8WAHN7Z5FW75B2.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/94/I3FR8MBUQ8060KFQV4409S.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/C2/7J7VX7SVAOYMS0KEPU9XZZ.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/C4/QVPSGBGW7LRK44YSDM8ZT8.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/C9/0GOX5ALGNYC7MVE1P1CO0B.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/DN/G00GXVDMIMPTYBFRCSEGN4.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/DY/9UD5IGMPFMULB2QGH67Z1L.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/FM/Y9617N5VJP1FPOR2OO0KRG.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/GX/K70FA927X89AQQGJBRUXC1.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/4/R8/2U7BDHIABC22UPSN8VKC6X.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/3R/7SAYVFZ5Y9QD21HWR9OM2E.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/55/O7WZ1KP7LD0JO2VJN9XF1G.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/5R/86K3EJ5WJAKQODJCEC6TJZ.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/8I/8OTZ83P0A5YD76OZH56YYN.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/9Q/RJIKW5IDIKPIL2NRWTITRT.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/CM/GTGS1J884N5BLQ51YXKRH8.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/CS/7K2FFU7AZBNF4MQKO0E36Z.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/GU/NH0781BX3JVFS6NXGXYLLX.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/HK/A8QS5EX1LKPLW66K4FVYHM.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/LH/R8XRMBMJY0F36RN3VTLBKG.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/PH/CBSOM2GQTWEII93HH1UPJ8.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/R2/OK3LAWY2HFFTBDIOECE1PJ.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/SA/4O0MA551SJQKKMEAFXS5R7.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/V5/6XBFQJJGXKI7FHKV83OA74.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/5/YC/3VB95IEFL8OLJEYQJLLQJF.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/6/3C/193B3HSEGD968WC4J1U6SR.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/6/BH/XLT29UJK5NU6WFKESQ9PVG.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/6/LQ/9GMKGO6RFLA43KHLMFUEYF.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/6/MC/LHJSZX5K97XO71M9WAXDL1.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/7/23/FV6DF29T79T9I088O79HP3.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/7/8O/ZZ352BW35399D97Y13T5EK.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/7/IZ/160NOSCBOGJ6O8G3H6UU7E.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/7/JN/B5XGFXUSQ5ZW7IYY1IDJ3U.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/7/KQ/Y2VFE0B7MV9LHMUYN99M0E.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/7/NR/4J95LVG18IBCTPF76P9YW6.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/7/NV/8P154ZSGF1DXI10ZZ8N8X7.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/7/OS/YWX5LDW6UKMHRXOBCWQFSU.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/7/QW/F0ZUA88PYRAH3L2Q6ZQ7PB.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/7/WI/FV3H9GKWSMAE1ZA1N5PBPB.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/7/X7/GO0GBDHCN1V2YPTH06T583.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/8/BO/6K734RFRRGTV06N46VQG2S.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/8/HK/SYPCEMK5VV7R45GT967S4W.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/8/MY/6BSN5KMKL13E1EWADVIOA8.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/8/NK/6A5QHMKV5CRSGHXL4UFUTD.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/8/OB/H9790RG1QOV8TRVUPUTVD5.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/8/VZ/5ACPXYKUU5EPRS9U63NJ9A.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/8/WQ/00SUSSLHR9YODGI3G3XC4K.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/8/XN/KF9LX7P4FI5SMD8DI7LGS3.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/9/01/JJVMDAP9SWKKAE9ALIP1MA.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/9/3N/OALGKMQ99LZBUWT5SP2NWP.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/9/47/ISGGE0S3X35YRKJEM5AIHO.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/9/83/PGIT3XS2MBDFQMQE28JQ85.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/9/8F/VZ8PH4UJX3S6R52RCEUS5A.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/9/8K/69E0BKZHAGJFLJAZCV92SU.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/9/8Y/0QFN2KZF5UKEOOR5QXWXO1.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/9/IG/MYYDIGT6YGV8ICBYW59CCI.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/A/BR/EQAKCJBJ7GRLRUK0IZGGP1.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/A/FI/IC53MPHNJEEMF72KMYSJT4.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/A/HL/0I528XVMEKEY9K2X49V5U4.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/A/I1/GLS9UCXL6MQN8KPY2FY5IE.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/A/I4/YQ4EGMK725JYODEXY94U07.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/A/O1/YC3B6CPR35LX29D0IAOMMH.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/A/S0/2NUO6IEFWDP8XPD1D9RXD4.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/B/0R/UFNE66W85CZWQTXC26UGFA.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/B/1Q/V1WJVOI9TCJDYVAPYMGSPE.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/B/55/TONVWM2DZ319A3H1IFLOGK.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/B/5Y/M5DTIQ5CU88YP32RY8KWXT.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/B/66/QNPMJ0JSCMTJNFA4QNUU05.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/B/IH/IMMJ0CY83K6O9SFTGR5IQN.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/B/JR/VB95O5FRO5BEAPE973YSDE.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/B/RM/I0W95A3NMXMZLZ4N0Q58AS.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/C/01/ODZA3M12LBLFFYH8ADQNZ7.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/C/4J/2XH8YFJVHPPRYIR2ORUNOV.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/C/7X/WZNET69I3TOXR9R99I49AE.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/C/9C/MJR6KLA7PIP77HS5KDK231.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/C/9I/XQ1A8XQ8N39UJRLS76ST60.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/C/AM/RCKBNR1G2FOO9LEZXE1T8C.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/C/LI/WQK8BTDSIQ75COAV5958HG.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/C/OX/QGHW78FJJ2FGSX01LATI1G.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/C/Q2/1D38095IF6H43CSD8MC4VM.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/C/UT/7GSDCBMOIQFGQLFTTZ9152.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/C/VN/GNKLN7VNIMGGPR4F18BTW5.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/AH/76DO824AQVMW8QJ9UWFYT3.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/B0/J5J9BFXV2FCUL2P3JUA113.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/FS/YYGDT7TBQKI1OZZP5D6VY6.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/HG/05D1JUXEO81CZEHOCV2VPG.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/J4/J6XREEJN2660A35F9ERVLZ.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/K4/SYFOVM2OMSVHRW9HYI6T7P.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/LY/9QS7HJ0BN3LSOGZGM78MXV.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/QA/9QUXNYZZTIJIWNYC3IYLHR.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/SZ/GRT4FWMQ43Y492CODPHT18.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/U3/S5FV301GLOHLU7YSY4JFJG.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/XX/DMVMSSJJOP4DMSQL25ENPA.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/D/YV/85RELIPQ0PH50P1M58RJF8.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/E/6D/D15BV20FD4HJF29KS7QSDY.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/E/8K/N63VC2XJF27R0C3W8FQOZD.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/E/IR/EBAVI2OQXKK1396LJPY0F6.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/E/K4/DXFSSWP9MTJ5LOCM3EKOHX.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/E/MT/LWXWO2TA6JL0S4MCPGSMBZ.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/E/RP/XCNM1BQ9A7030UQ455AZY1.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/E/VP/PN6ZTHK1QWY3JK82HZRTV5.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalActors__/ChaosVehicle/ChaosVehicle/F/3Y/0FY32QUTSLN4G2C1RT8OED.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalObjects__/ChaosVehicle/ChaosVehicle/2/91/KQ1TKNZQ4O6VIX28RY9GSQ.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalObjects__/ChaosVehicle/ChaosVehicle/7/28/3JZFZ0KRLVHC17E3UFM6A3.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalObjects__/ChaosVehicle/ChaosVehicle/8/1M/3IOEJ8Y7OHMDG3RSBMK2UF.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalObjects__/ChaosVehicle/ChaosVehicle/D/7X/8XC000TO9PE4NCBNBBXU09.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalObjects__/ChaosVehicle/ChaosVehicle/E/8U/7CRC0WD82FG8VVB4IDPBUY.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/__ExternalObjects__/ChaosVehicle/ChaosVehicle/F/26/5Y54O1UGL8HJ23STRXVX4U.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.UETestProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.UETestProject/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Maps/Basic.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/Basic.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UETestProject.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/UETestProject.uproject" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -16,48 +173,53 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Myxcil"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Myxcil&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Myxcil/UETestProject",
-    "accountId": "52cda384-0504-464b-8520-cd877a4303f9"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Myxcil/UETestProject&quot;,
+    &quot;accountId&quot;: &quot;52cda384-0504-464b-8520-cd877a4303f9&quot;
   }
-}]]></component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 8
-}]]></component>
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="mock://G:/_development/_c++/UETestProject/UETestProject.uproject" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 8
+}</component>
   <component name="ProjectId" id="2fY4qnxdLiQSXCs4vdyozTvfjTr" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;C++ Project.UETestProject.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "rider.external.source.directories": [
-      "C:\\Users\\Rubicon\\AppData\\Roaming\\JetBrains\\Rider2024.1\\resharper-host\\DecompilerCache",
-      "C:\\Users\\Rubicon\\AppData\\Roaming\\JetBrains\\Rider2024.1\\resharper-host\\SourcesCache",
-      "C:\\Users\\Rubicon\\AppData\\Local\\Symbols\\src"
+  &quot;keyToStringList&quot;: {
+    &quot;rider.external.source.directories&quot;: [
+      &quot;C:\\Users\\Rubicon\\AppData\\Roaming\\JetBrains\\Rider2024.1\\resharper-host\\DecompilerCache&quot;,
+      &quot;C:\\Users\\Rubicon\\AppData\\Roaming\\JetBrains\\Rider2024.1\\resharper-host\\SourcesCache&quot;,
+      &quot;C:\\Users\\Rubicon\\AppData\\Local\\Symbols\\src&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="C++ Project.UETestProject">
     <configuration name="UE5" type="CppProject" factoryName="C++ Project">
       <configuration_1>
@@ -478,15 +640,36 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1713964871832</updated>
-      <workItem from="1713964873306" duration="398000" />
+      <workItem from="1713964873306" duration="1460000" />
+      <workItem from="1714054021175" duration="1467000" />
     </task>
+    <task id="LOCAL-00001" summary="initial commit">
+      <option name="closed" value="true" />
+      <created>1713965405437</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1713965405437</updated>
+    </task>
+    <task id="LOCAL-00002" summary="initial commit">
+      <option name="closed" value="true" />
+      <created>1713965417251</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1713965417251</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="initial commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="initial commit" />
   </component>
 </project>
