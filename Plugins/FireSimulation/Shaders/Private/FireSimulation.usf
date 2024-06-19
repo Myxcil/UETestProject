@@ -1,0 +1,591 @@
+﻿#include "/Engine/Public/Platform.ush"
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+#define NUM_THREADS_X 8
+#define NUM_THREADS_Y 8
+#define NUM_THREADS_Z 8
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Globals
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+int3 VelocityBounds;
+int3 FluidBounds;
+int3 LightBounds;
+float3 RcpVelocitySize;
+float3 RcpFluidSize;
+float3 RcpLightSize;
+float3 FluidAdvectScale;
+
+float2 TScale;	// x = transportScale, y = 1/transportScale
+float3 WorldToGrid;
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// x = temperature, y = reaction, z = vapor, w = smoke
+Texture3D<float4> fluidDataIn;
+Texture3D<float4> velocityIn;
+Texture3D<float> pressureIn;
+Texture3D<float4> vorticityIn;
+Texture3D<float> divergenceIn;
+Texture3D<float> obstaclesIn;
+Texture3D<float4> emitterIn;
+
+RWTexture3D<float> outputFloat;
+RWTexture3D<float4> outputFloat4;
+
+SamplerState _PointClamp;
+SamplerState _LinearClamp;
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Helper functions
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+bool isBorder(float3 id, int3 bounds)
+{
+	return (id.x > 0 && id.x < bounds.x && id.y > 0 && id.y < bounds.y && id.z > 0 && id.z < bounds.z);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+bool isOutside(float3 id, int3 bounds)
+{
+	return id.x < 0 || id.x > bounds.x || id.y < 0 || id.y > bounds.y || id.z < 0 || id.z > bounds.z;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+int3 getNeighbor(float3 pos, int x, int y, int z, int3 bounds)
+{
+	return clamp(pos + int3(x, y, z), 0, bounds);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+bool isObstacle(float3 fireId)
+{
+	return obstaclesIn.SampleLevel(_LinearClamp, fireId * RcpVelocitySize, 0) > 0.5;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Clear functions
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma kernel CSClearFloat
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSClearFloat(int3 id : SV_DispatchThreadID)
+{
+	outputFloat[id] = 0;
+}
+
+#pragma kernel CSClearFloat4
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSClearFloat4(int3 id : SV_DispatchThreadID)
+{
+	outputFloat4[id] = 0;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Velocity advection
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+float Forward;
+
+float3 getAdvectedPosition(int3 pos)
+{
+	return RcpVelocitySize * (0.5 + (pos - Forward * WorldToGrid * velocityIn[pos].xyz));
+}
+
+float3 Dissipation;
+
+#pragma kernel CSAdvectVelocity
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSAdvectVelocity(int3 id : SV_DispatchThreadID)
+{
+	if (isObstacle(id))
+	{
+		outputFloat4[id] = 0;
+	}
+	else 
+	{
+		float3 pos = getAdvectedPosition(id);
+		float3 vel = velocityIn.SampleLevel(_LinearClamp, pos, 0).xyz;
+		outputFloat4[id] = float4(vel * (1.0 - Dissipation), 0);
+	}
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Fluid data advection
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+float3 getFluidAdvectedPosition(float3 pos)
+{
+	float3 v = velocityIn.SampleLevel(_LinearClamp, pos * RcpFluidSize, 0).xyz;
+	pos = RcpFluidSize * (0.5 + (pos - Forward * WorldToGrid * v));
+	return pos;
+}
+
+float4 FluidDissipation;
+float4 FluidDecay;
+Texture3D<float4> phiIn;
+
+#pragma kernel CSPrepareFluidDataAdvection
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSPrepareFluidDataAdvection(int3 id : SV_DispatchThreadID)
+{
+	float3 fireId = id * TScale.y;
+	if (isObstacle(fireId))
+	{
+		outputFloat4[id] = 0;
+	}
+	else 
+	{
+		float3 pos = getFluidAdvectedPosition(id);
+		outputFloat4[id] = phiIn.SampleLevel(_LinearClamp, pos, 0);
+	}
+}
+
+Texture3D<float4> phi0;
+Texture3D<float4> phi1;
+
+#pragma kernel CSAdvectFluidData
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSAdvectFluidData(int3 id : SV_DispatchThreadID)
+{
+	float3 fireId = id * TScale.y;
+	if (isObstacle(fireId))
+	{
+		outputFloat4[id] = 0;
+		return;
+	}
+
+	float3 pos = getFluidAdvectedPosition(id);
+	
+	float4 r;
+	if (isBorder(fireId,FluidBounds))
+	{
+		r = fluidDataIn.SampleLevel(_LinearClamp, pos, 0);
+	}
+	else 
+	{
+		float4 nodes[8];
+		nodes[0] = fluidDataIn[getNeighbor(id, -1, -1, -1, FluidBounds)];
+		nodes[1] = fluidDataIn[getNeighbor(id, -1, -1, +1, FluidBounds)];
+		nodes[2] = fluidDataIn[getNeighbor(id, -1, +1, -1, FluidBounds)];
+		nodes[3] = fluidDataIn[getNeighbor(id, -1, +1, +1, FluidBounds)];
+		nodes[4] = fluidDataIn[getNeighbor(id, +1, -1, -1, FluidBounds)];
+		nodes[5] = fluidDataIn[getNeighbor(id, +1, -1, +1, FluidBounds)];
+		nodes[6] = fluidDataIn[getNeighbor(id, +1, +1, -1, FluidBounds)];
+		nodes[7] = fluidDataIn[getNeighbor(id, +1, +1, +1, FluidBounds)];
+
+		float4 minPhi = min(min(min(min(min(min(min(nodes[0],nodes[1]),nodes[2]),nodes[3]),nodes[4]),nodes[5]),nodes[6]),nodes[7]);
+		float4 maxPhi = max(max(max(max(max(max(max(nodes[0],nodes[1]),nodes[2]),nodes[3]),nodes[4]),nodes[5]),nodes[6]),nodes[7]);
+
+		r = phi1.SampleLevel(_LinearClamp, pos, 0) + 0.5 * (fluidDataIn[id] - phi0[id]);
+		r = max(min(r,maxPhi),minPhi);
+	}
+		
+	outputFloat4[id] = max(0, r * (1.0 - FluidDissipation) -  FluidDecay);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Buoyancy 
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+float Buoyancy;
+float Weight;
+float AmbientTemperature;
+float3 Up;
+
+#pragma kernel CSBuoyancy
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSBuoyancy(int3 id : SV_DispatchThreadID)
+{
+	if (isObstacle(id))
+	{
+		outputFloat4[id] = 0;
+		return;
+	}
+
+	// x = temperature, y = reaction, z = vapor, w = smoke
+	float4 trdv = fluidDataIn.SampleLevel(_LinearClamp, RcpVelocitySize * id, 0);
+	float dT = max(0, trdv.x - AmbientTemperature);
+
+	// buoyancy term
+	float3 vel = velocityIn[id].xyz;
+	vel += Up * (dT * Buoyancy - trdv.w * Weight);
+
+	// copy final results
+	outputFloat4[id] = float4(vel, 0);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Extinguish
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+float Amount;
+float3 Extinguishment;
+float3 TempDistribution;
+
+float getNeighborTemperature(int3 id, int dx, int dy, int dz)
+{
+	id = getNeighbor(id, dx, dy, dz, FluidBounds);
+	return fluidDataIn[id].x;
+}
+
+#pragma kernel CSExtinguish
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSExtinguish(int3 id : SV_DispatchThreadID)
+{
+	// x = temperature, y = reaction, z = vapor, w = smoke
+	float4 trdv = fluidDataIn[id];
+
+	// apply extinguishment
+	// converts reaction into smoke
+	if (trdv.y > 0 && trdv.y < Extinguishment.z)
+	{
+		trdv.w += Amount * trdv.y;
+	}
+
+	// get heat from neighbor cells
+	float3 fireId = TScale.y * id;
+	if (!isObstacle(fireId))
+	{
+		// distribute temperature
+		float3 d;
+		d.x = max(0,getNeighborTemperature(id,-1, 0, 0) - trdv.x) + max(0,getNeighborTemperature(id, 1, 0, 0) - trdv.x);
+		d.y = max(0,getNeighborTemperature(id, 0,-1, 0) - trdv.x) + max(0,getNeighborTemperature(id, 0, 1, 0) - trdv.x);
+		d.z = max(0,getNeighborTemperature(id, 0, 0,-1) - trdv.x) + max(0,getNeighborTemperature(id, 0, 0, 1) - trdv.x);
+		trdv.x += dot(TempDistribution,d);
+	}
+
+	// apply 'cooling' effect from vapor
+	// reduces temperature and reaction
+	trdv.xy = max(0, trdv.xy - Extinguishment.xy * trdv.z);
+
+	// copy final results
+	outputFloat4[id] = trdv;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Vorticity
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma kernel CSVorticity
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSVorticity(int3 id : SV_DispatchThreadID)
+{
+	float4 L = velocityIn[getNeighbor(id, -1, 0, 0, VelocityBounds)];
+	float4 R = velocityIn[getNeighbor(id, +1, 0, 0, VelocityBounds)];
+	float4 D = velocityIn[getNeighbor(id, 0, -1, 0, VelocityBounds)];
+	float4 T = velocityIn[getNeighbor(id, 0, +1, 0, VelocityBounds)];
+	float4 B = velocityIn[getNeighbor(id, 0, 0, -1, VelocityBounds)];
+	float4 F = velocityIn[getNeighbor(id, 0, 0, +1, VelocityBounds)];
+
+	float3 vorticity = 0.5f * float3(((T.z - D.z) - (F.y - B.y)), ((F.x - B.x) - (R.z - L.z)), ((R.y - L.y) - (T.x - D.x)));
+
+	outputFloat4[id] = float4(vorticity, 0);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Confinement
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+float Strength;
+
+#pragma kernel CSConfinement
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSConfinement(int3 id : SV_DispatchThreadID)
+{
+	float omegaL = length(vorticityIn[getNeighbor(id, -1, 0, 0, VelocityBounds)]);
+	float omegaR = length(vorticityIn[getNeighbor(id, +1, 0, 0, VelocityBounds)]);
+	float omegaD = length(vorticityIn[getNeighbor(id, 0, -1, 0, VelocityBounds)]);
+	float omegaT = length(vorticityIn[getNeighbor(id, 0, +1, 0, VelocityBounds)]);
+	float omegaB = length(vorticityIn[getNeighbor(id, 0, 0, -1, VelocityBounds)]);
+	float omegaF = length(vorticityIn[getNeighbor(id, 0, 0, +1, VelocityBounds)]);
+
+	float3 omega = vorticityIn[id].xyz;
+
+	float3 eta = 0.5 * float3(omegaR - omegaL, omegaT - omegaD, omegaF - omegaB);
+	eta = normalize(eta + float3(0.001, 0.001, 0.001));
+
+	float4 force = float4(Strength * cross(eta, omega), 0);
+	outputFloat4[id] = velocityIn[id] + force;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Divergence
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+float3 getNeighborVelocity(int3 id, int dx, int dy, int dz)
+{
+	id += int3(dx, dy, dz);
+	if (isOutside(id,VelocityBounds))
+	{	
+		return 0;
+	}
+	if (isObstacle(id))
+	{
+		return 0;
+	}
+	return velocityIn[id].xyz;
+}
+
+#pragma kernel CSDivergence
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSDivergence(int3 id : SV_DispatchThreadID)
+{
+	float3 L = getNeighborVelocity(id, -1, 0, 0);
+	float3 R = getNeighborVelocity(id, +1, 0, 0);
+	float3 D = getNeighborVelocity(id, 0, -1, 0);
+	float3 T = getNeighborVelocity(id, 0, +1, 0);
+	float3 B = getNeighborVelocity(id, 0, 0, -1);
+	float3 F = getNeighborVelocity(id, 0, 0, +1);
+
+	outputFloat[id] = 0.5f * ((R.x - L.x) + (T.y - D.y) + (F.z - B.z));
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Pressure
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+float getNeighborPressure(float pC, int3 id, int dx, int dy, int dz)
+{
+	id += int3(dx,dy,dz);
+	if (isOutside(id,VelocityBounds))
+	{	
+		return pC;
+	}
+	if (obstaclesIn[id] > 0.9)
+	{
+		return pC;
+	}
+	return pressureIn[id];
+}
+
+#pragma kernel CSPressure
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSPressure(int3 id : SV_DispatchThreadID)
+{
+	float pC = pressureIn[id];
+	
+	float pL = getNeighborPressure(pC, id, -1, 0, 0);
+	float pR = getNeighborPressure(pC, id, +1, 0, 0);
+	float pD = getNeighborPressure(pC, id,  0,-1, 0);
+	float pT = getNeighborPressure(pC, id,  0,+1, 0);
+	float pB = getNeighborPressure(pC, id,  0, 0,-1);
+	float pF = getNeighborPressure(pC, id,  0, 0,+1);
+
+	float d = divergenceIn[id];
+	outputFloat[id] = (pL + pR + pD + pT + pB + pF - d) / 6.0f;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Projection
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+float getNeighborPressure(float pC, inout float mask, int3 id, int dx, int dy, int dz)
+{
+	id += int3(dx,dy,dz);
+	if (isOutside(id,VelocityBounds))
+	{	
+		mask = 0;
+		return pC;
+	}
+	if (obstaclesIn[id] > 0.9)
+	{
+		mask = 0;
+		return pC;
+	}
+	return pressureIn[id];
+}
+
+#pragma kernel CSProjection
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSProjection(int3 id : SV_DispatchThreadID)
+{
+	if (obstaclesIn[id] > 0.9)
+	{
+		outputFloat4[id] = 0;
+		return;
+	}
+
+	float pC = pressureIn[id];
+	float3 mask = float3(1,1,1);
+
+	float pL = getNeighborPressure(pC, mask.x, id, -1, 0, 0);
+	float pR = getNeighborPressure(pC, mask.x, id,  1, 0, 0);
+	float pD = getNeighborPressure(pC, mask.y, id,  0,-1, 0);
+	float pT = getNeighborPressure(pC, mask.y, id,  0, 1, 0);
+	float pB = getNeighborPressure(pC, mask.z, id,  0, 0,-1);
+	float pF = getNeighborPressure(pC, mask.z, id,  0, 0, 1);
+
+	float3 v = velocityIn[id].xyz - float3(pR - pL, pT - pD, pF - pB) * 0.5;
+	outputFloat4[id] = float4(v * mask, 0);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Add emitter
+// [in]: es = x=heat,y=water,z=obstacle,w=temperature sub
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+int sliceIndex;
+float3 emitterScale;	// x=tempScale,y=reaction,z=vaporScale
+Texture2D<float4> emitterSlice;
+
+#pragma kernel CSAddEmitter
+[numthreads(NUM_THREADS_X,1,NUM_THREADS_Z)]
+void CSAddEmitter(int3 id : SV_DispatchThreadID)
+{
+	id.y = sliceIndex;
+	float4 es = emitterSlice[id.xz];
+
+	// x=temp, y=reaction, z=vapor
+	float3 emit = es.xxy;
+
+	// output to emitter buffer
+	outputFloat4[id].xyzw = float4(emit * emitterScale, es.w);
+	
+	// obstacles in channel b
+	outputFloat[id] = es.z;
+}
+
+float vaporMinTemperature;
+float vaporTemperatureScale;
+float vaporDensity;
+
+#pragma kernel CSApplyEmitter
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSApplyEmitter(int3 id : SV_DispatchThreadID)
+{
+	float3 tid = id * RcpFluidSize;
+
+	float4 e = emitterIn.SampleLevel(_LinearClamp, tid, 0);
+	
+	float d = e.z * vaporDensity;
+	float4 output = fluidDataIn[id] + float4(e.xyz, d);
+
+	output.z *= saturate((output.x - vaporMinTemperature) * vaporTemperatureScale);
+	output.x = max(0, output.x - e.w);	
+	
+	outputFloat4[id] = output;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Copy to Texture3D
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// x = temperature, y = reaction, z = vapor, w = smoke
+// =>
+// reaction, vapor, smoke, temperature
+RWTexture3D<float4> volumeTexture;
+
+#pragma kernel CSCopyToVolume
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSCopyToVolume(int3 id : SV_DispatchThreadID)
+{
+	volumeTexture[id] = fluidDataIn[id].yzwx;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Copy to TemperatureMap
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+int temperatureSliceIndex;
+int3 numSamples;
+RWTexture2D<float> temperatureOut;
+
+#pragma kernel CSCopyTemperature
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,1)]
+void CSCopyTemperature(int3 id : SV_DispatchThreadID)
+{
+	id.z = temperatureSliceIndex;
+
+	int3 fireId = floor((id * numSamples) * TScale.x);
+
+	float maxT = 0;
+
+	int3 fluidId;
+	for(int z=0; z < numSamples.z; ++z)
+	{
+		fluidId.z = clamp(fireId.z + z, 0, FluidBounds.z);
+		for(int y=0; y < numSamples.y; ++y)
+		{
+			fluidId.y = clamp(fireId.y + y, 0, FluidBounds.y);
+			for(int x=0; x < numSamples.x; ++x)
+			{
+				fluidId.x = clamp(fireId.x + x, 0, FluidBounds.x);
+				maxT = max(maxT, fluidDataIn[fluidId].x);
+			}
+		}
+	}
+
+	temperatureOut[id.xy] = maxT;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+RWTexture3D<float> lightTexture;
+float reactionThreshold;
+float reactionScale;
+
+#pragma kernel CSEvaluateLighting
+[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
+void CSEvaluateLighting(int3 id : SV_DispatchThreadID)
+{
+	float3 fireId = float3(RcpLightSize * id);
+	float4 trdv = fluidDataIn.SampleLevel(_LinearClamp, fireId, 0);
+	float reaction = max(0, trdv.y - reactionThreshold);
+	lightTexture[id] = reaction * reactionScale;
+}
+
+Texture3D<float> blurIn;
+RWTexture3D<float> blurOut;
+int3 blurStep;
+
+float sampleLightTexture(int3 id, int3 offset)
+{
+	int3 sampleId = clamp(id + offset, 0, LightBounds);
+	return blurIn[sampleId];
+}
+
+#pragma kernel CSBlur
+[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
+void CSBlur(int3 id : SV_DispatchThreadID)
+{
+	float sum = 0;
+	sum += sampleLightTexture(id, -4 * blurStep) * 0.0162162162;
+	sum += sampleLightTexture(id, -3 * blurStep) * 0.0540540541;
+	sum += sampleLightTexture(id, -2 * blurStep) * 0.1216216216;
+	sum += sampleLightTexture(id, -1 * blurStep) * 0.1945945946;
+	sum += blurIn[id] * 0.2270270270;
+	sum += sampleLightTexture(id, 1 * blurStep) * 0.1945945946;
+	sum += sampleLightTexture(id, 2 * blurStep) * 0.1216216216;
+	sum += sampleLightTexture(id, 3 * blurStep) * 0.0540540541;
+	sum += sampleLightTexture(id, 4 * blurStep) * 0.0162162162;
+	blurOut[id] = sum;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+// Load/Save buffers
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+RWBuffer<float3> velocitySave;
+RWBuffer<float4> fluidSave;
+int3 coords;
+
+#pragma kernel CSSaveVelocity
+[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
+void CSSaveVelocity(int3 id : SV_DispatchThreadID)
+{
+	int idx = dot(id, coords);
+	velocitySave[idx] = velocityIn[id].xyz;
+}
+
+#pragma kernel CSSaveFluid
+[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
+void CSSaveFluid(int3 id : SV_DispatchThreadID)
+{
+	int idx = dot(id, coords);
+	fluidSave[idx] = fluidDataIn[id];
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+Buffer<float3> velocityLoad;
+Buffer<float4> fluidLoad;
+
+#pragma kernel CSLoadVelocity
+[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
+void CSLoadVelocity(int3 id : SV_DispatchThreadID)
+{
+	int idx = dot(id, coords);
+	outputFloat4[id] = float4(velocityLoad[idx], 0);
+}
+
+
+#pragma kernel CSLoadFluid
+[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
+void CSLoadFluid(int3 id : SV_DispatchThreadID)
+{
+	int idx = dot(id, coords);
+	outputFloat4[id] = fluidLoad[idx];
+}
