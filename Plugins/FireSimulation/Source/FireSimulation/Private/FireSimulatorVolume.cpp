@@ -22,13 +22,11 @@ void UFireSimulatorVolume::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FFireSimulationModule::Get().Initialize(GetWorld(), VolumeSize, Config);
+	FFireSimulationModule::Get().Initialize(VolumeSize, Config);
 }
 
 void UFireSimulatorVolume::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	FFireSimulationModule::Get().Deinitialize();
-	
 	Super::EndPlay(EndPlayReason);
 }
 
