@@ -35,7 +35,6 @@ private:
 		FIntVector Bounds = FIntVector::ZeroValue;
 		FVector3f RcpSize = FVector3f::ZeroVector;
 		FIntVector ThreadCount = FIntVector::ZeroValue;
-		TRefCountPtr<IPooledRenderTarget> RenderTarget;
 
 		void Init(FIntVector Res);
 	};
@@ -48,4 +47,9 @@ private:
 	
 	FBufferDesc Velocity;
 	FBufferDesc Fluid;
+
+	TRefCountPtr<IPooledRenderTarget> PrevVelocity;
+	TRefCountPtr<IPooledRenderTarget> PrevFluid;
+	TRefCountPtr<IPooledRenderTarget> PrevPressure;
+	TRefCountPtr<IPooledRenderTarget> Obstacles;
 };
