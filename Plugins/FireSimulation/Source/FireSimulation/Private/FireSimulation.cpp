@@ -9,6 +9,7 @@
 #include "Engine/TextureRenderTargetVolume.h"
 #include "Interfaces/IPluginManager.h"
 #include "Kismet/KismetRenderingLibrary.h"
+#include "Math/UnitConversion.h"
 
 #define LOCTEXT_NAMESPACE "FFireSimulationModule"
 
@@ -169,10 +170,10 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 			AdvectFluid(GraphBuilder, TimeStep, Config);
 			AdvectVelocity(GraphBuilder, TimeStep, Config);
 
-			ApplyBuoyancy(GraphBuilder, Config);
-			HandleExtinguish(GraphBuilder, Config);
+			ApplyBuoyancy(GraphBuilder, TimeStep, Config);
+			HandleExtinguish(GraphBuilder, TimeStep, Config);
 			CalculateVorticity(GraphBuilder, Config);
-			UpdateConfinement(GraphBuilder, Config);
+			UpdateConfinement(GraphBuilder, TimeStep, Config);
 
 			CalculateDivergence(GraphBuilder, Config);
 			SolvePressure(GraphBuilder, Config);
@@ -183,17 +184,28 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 	GraphBuilder.Execute();
 }
 
-FRDGTextureRef FFireSimulationModule::CreateTexture(FRDGBuilder& GraphBuilder, const FShaderBuffer& Buffer)
+FRDGTextureRef FFireSimulationModule::CreateTexture(FRDGBuilder& GraphBuilder, FShaderBuffer& Buffer)
 {
-	const FRDGTextureDesc TextureDesc(FRDGTextureDesc::Create3D(Buffer.Resolution, Buffer.Format, EClearBinding::ENoneBound, ETextureCreateFlags::RenderTargetable|ETextureCreateFlags::UAV));
-	return GraphBuilder.CreateTexture(TextureDesc, Buffer.DebugName);
+	if (Buffer.RenderTarget == nullptr)
+	{
+		const FPooledRenderTargetDesc Desc(FPooledRenderTargetDesc::CreateVolumeDesc(
+			Buffer.Resolution.X, Buffer.Resolution.Y, Buffer.Resolution.Z,
+			Buffer.Format,
+			FClearValueBinding::None,
+			TexCreate_None,
+			TexCreate_UAV | TexCreate_ShaderResource,
+			false));
+		
+		GRenderTargetPool.FindFreeElement(GraphBuilder.RHICmdList, Desc, Buffer.RenderTarget, Buffer.DebugName);
+	}
+	return GraphBuilder.RegisterExternalTexture(Buffer.RenderTarget, Buffer.DebugName);
 	/*
 	TRefCountPtr<IPooledRenderTarget> RenderTarget = CreateRenderTarget(Buffer.Volume->GetResource()->GetTexture3DRHI(), Buffer.DebugName);
 	return GraphBuilder.RegisterExternalTexture(RenderTarget, ERDGTextureFlags::None);
 	*/
 }
 
-FRDGTextureUAVRef FFireSimulationModule::CreateUAV(FRDGBuilder& GraphBuilder, const FShaderBuffer& Buffer)
+FRDGTextureUAVRef FFireSimulationModule::CreateUAV(FRDGBuilder& GraphBuilder, FShaderBuffer& Buffer)
 {
 	return GraphBuilder.CreateUAV(CreateTexture(GraphBuilder, Buffer));
 }
@@ -230,11 +242,14 @@ void FFireSimulationModule::AdvectFluid(FRDGBuilder& GraphBuilder, float TimeSte
 	PrepareParams->phiIn =  CreateTexture(GraphBuilder, Phi[1]);
 	PrepareParams->outputFloat4 = CreateUAV(GraphBuilder, Phi[0]);
 
-	FRDGPassRef PassPrepareBack = GraphBuilder.AddPass(RDG_EVENT_NAME("Prepare Fluid Advection Back"), PrepareParams, ERDGPassFlags::AsyncCompute,
+	FRDGPassRef PassPrepareBack = GraphBuilder.AddPass(
+		RDG_EVENT_NAME("Prepare Fluid Advection Back"),
+		PrepareParams,
+		ERDGPassFlags::AsyncCompute,
 		[&PrepareParams, PrepareFluidDataAdvectCS, GroupCount](FRHIComputeCommandList& RHICmdList)
-					{
-						FComputeShaderUtils::Dispatch(RHICmdList, PrepareFluidDataAdvectCS, *PrepareParams, GroupCount);
-					});
+		{
+			FComputeShaderUtils::Dispatch(RHICmdList, PrepareFluidDataAdvectCS, *PrepareParams, GroupCount);
+		});
 
 	GraphBuilder.AddPassDependency(PassPrepareForward, PassPrepareBack);
 
@@ -258,11 +273,14 @@ void FFireSimulationModule::AdvectFluid(FRDGBuilder& GraphBuilder, float TimeSte
 	AdvectParams->outputFloat4 = CreateUAV(GraphBuilder, FluidData[WRITE]);
 
 	TShaderMapRef<FFireShaderAdvectFluidDataCS> FluidDataAdvectCS(GetGlobalShaderMap(GMaxRHIFeatureLevel));
-	FRDGPassRef PassAdvect = GraphBuilder.AddPass(RDG_EVENT_NAME("Fluid Advection"), PrepareParams, ERDGPassFlags::AsyncCompute,
+	FRDGPassRef PassAdvect = GraphBuilder.AddPass(
+		RDG_EVENT_NAME("Fluid Advection"),
+		PrepareParams,
+		ERDGPassFlags::AsyncCompute,
 		[&AdvectParams, FluidDataAdvectCS, GroupCount](FRHIComputeCommandList& RHICmdList)
-					{
-						FComputeShaderUtils::Dispatch(RHICmdList, FluidDataAdvectCS, *AdvectParams, GroupCount);
-					});
+		{
+			FComputeShaderUtils::Dispatch(RHICmdList, FluidDataAdvectCS, *AdvectParams, GroupCount);
+		});
 
 	GraphBuilder.AddPassDependency(PassPrepareBack, PassAdvect);
 
@@ -271,30 +289,172 @@ void FFireSimulationModule::AdvectFluid(FRDGBuilder& GraphBuilder, float TimeSte
 
 void FFireSimulationModule::AdvectVelocity(FRDGBuilder& GraphBuilder, float TimeStep, const FFireSimulationConfig& Config)
 {
+	FFireShaderAdvectVelocityCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderAdvectVelocityCS::FParameters>();
+	Params->Forward = TimeStep;
+	Params->Dissipation = Config.Dissipation;
+	Params->WorldToGrid = WorldToGrid;
+	Params->RcpVelocitySize = Velocity[READ].RcpSize;
+	Params->_LinearClamp = TStaticSamplerState<>::GetRHI();
+	Params->velocityIn = CreateTexture(GraphBuilder, Velocity[READ]);
+	Params->obstaclesIn = CreateTexture( GraphBuilder, Obstacles);
+	Params->outputFloat4 = CreateUAV( GraphBuilder, Velocity[WRITE]);
+
+	TShaderMapRef<FFireShaderAdvectVelocityCS> Shader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+	const auto GroupCount = DefaultThreadCount;
+	
+	GraphBuilder.AddPass(
+		RDG_EVENT_NAME("Velocity Advection"),
+		Params,
+		ERDGPassFlags::AsyncCompute,
+		[&Params, Shader, GroupCount](FRHIComputeCommandList& RHICmdList)
+		{
+			FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
+		});
+
+	SwapBuffer(Velocity);
 }
 
-void FFireSimulationModule::ApplyBuoyancy(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config)
+void FFireSimulationModule::ApplyBuoyancy(FRDGBuilder& GraphBuilder, float TimeStep, const FFireSimulationConfig& Config)
 {
+	FFireShaderBuoyancyCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderBuoyancyCS::FParameters>();
+	Params->Buoyancy = Config.Buoyancy * TimeStep;
+	Params->Weight = Config.DensityWeight;
+	Params->AmbientTemperature = Config.AmbientTemperature;
+	Params->Up = FVector3f(FVector::UpVector);
+	Params->fluidDataIn = CreateTexture(GraphBuilder, FluidData[READ]);
+	Params->velocityIn = CreateTexture(GraphBuilder, Velocity[READ]);
+	Params->obstaclesIn = CreateTexture(GraphBuilder, Obstacles);
+	Params->outputFloat4 = CreateUAV(GraphBuilder, Velocity[WRITE]);
+	
+	TShaderMapRef<FFireShaderBuoyancyCS> Shader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+	const auto GroupCount = DefaultThreadCount;
+	
+	GraphBuilder.AddPass(
+		RDG_EVENT_NAME("Buoyancy Calculation"),
+		Params,
+		ERDGPassFlags::AsyncCompute,
+		[&Params, Shader, GroupCount](FRHIComputeCommandList& RHICmdList)
+		{
+			FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
+		});
+
+	SwapBuffer(Velocity);
 }
 
-void FFireSimulationModule::HandleExtinguish(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config)
+void FFireSimulationModule::HandleExtinguish(FRDGBuilder& GraphBuilder, float TimeStep, const FFireSimulationConfig& Config)
 {
+	FFireShaderExtinguishCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderExtinguishCS::FParameters>();
+	Params->Amount = Config.ReactionAmount;
+	Params->Extinguishment = FVector3f(Config.VaporCooling, Config.VaporExtinguish, Config.ReactionExtinguish);
+	Params->TempDistribution = Config.TemperatureDistribution * TimeStep;
+	Params->fluidDataIn = CreateTexture(GraphBuilder, FluidData[READ]);
+	Params->outputFloat4 = CreateUAV(GraphBuilder, FluidData[WRITE]);
+
+	TShaderMapRef<FFireShaderExtinguishCS> Shader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+	const auto GroupCount = TransportThreadCount;
+	
+	GraphBuilder.AddPass(
+		RDG_EVENT_NAME("Extinguishment"),
+		Params,
+		ERDGPassFlags::AsyncCompute,
+		[&Params, Shader, GroupCount](FRHIComputeCommandList& RHICmdList)
+		{
+			FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
+		});
+
+	SwapBuffer(FluidData);
 }
 
 void FFireSimulationModule::CalculateVorticity(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config)
 {
+	FFireShaderVorticityCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderVorticityCS::FParameters>();
+	Params->velocityIn = CreateTexture(GraphBuilder, Velocity[READ]);
+	Params->outputFloat4 = CreateUAV( GraphBuilder, Vorticity);
+
+	TShaderMapRef<FFireShaderVorticityCS> Shader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+	const auto GroupCount = DefaultThreadCount;
+	
+	GraphBuilder.AddPass(
+		RDG_EVENT_NAME("Vorticity"),
+		Params,
+		ERDGPassFlags::AsyncCompute,
+		[&Params, Shader, GroupCount](FRHIComputeCommandList& RHICmdList)
+		{
+			FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
+		});
 }
 
-void FFireSimulationModule::UpdateConfinement(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config)
+void FFireSimulationModule::UpdateConfinement(FRDGBuilder& GraphBuilder, float TimeStep, const FFireSimulationConfig& Config)
 {
+	FFireShaderConfinementCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderConfinementCS::FParameters>();
+	Params->Strength = Config.VorticityStrength * TimeStep;
+	Params->velocityIn = CreateTexture(GraphBuilder, Velocity[READ]);
+	Params->vorticityIn = CreateTexture( GraphBuilder, Vorticity);
+	Params->outputFloat4 = CreateUAV( GraphBuilder, Velocity[WRITE]);
+
+	TShaderMapRef<FFireShaderConfinementCS> Shader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+	const auto GroupCount = DefaultThreadCount;
+	
+	GraphBuilder.AddPass(
+		RDG_EVENT_NAME("Vorticity"),
+		Params,
+		ERDGPassFlags::AsyncCompute,
+		[&Params, Shader, GroupCount](FRHIComputeCommandList& RHICmdList)
+		{
+			FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
+		});
+
+	SwapBuffer(Velocity);
 }
 
 void FFireSimulationModule::CalculateDivergence(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config)
 {
+	FFireShaderDivergenceCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderDivergenceCS::FParameters>();
+	Params->velocityIn = CreateTexture(GraphBuilder, Velocity[READ]);
+	Params->obstaclesIn = CreateTexture(GraphBuilder, Obstacles);
+	Params->outputFloat = CreateUAV( GraphBuilder, Divergence);
+
+	TShaderMapRef<FFireShaderDivergenceCS> Shader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+	const auto GroupCount = DefaultThreadCount;
+	
+	GraphBuilder.AddPass(
+		RDG_EVENT_NAME("Divergence"),
+		Params,
+		ERDGPassFlags::AsyncCompute,
+		[&Params, Shader, GroupCount](FRHIComputeCommandList& RHICmdList)
+		{
+			FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
+		});
 }
 
 void FFireSimulationModule::SolvePressure(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config)
 {
+	if (Config.NumPressureIterations == 0)
+		return;
+
+	FFireShaderPressureCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderPressureCS::FParameters>();
+	Params->obstaclesIn = CreateTexture(GraphBuilder, Obstacles);
+	Params->divergenceIn = CreateTexture( GraphBuilder,Divergence);
+
+	TShaderMapRef<FFireShaderPressureCS> Shader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+	const auto GroupCount = DefaultThreadCount;
+
+	for(int32 I=0; I < Config.NumPressureIterations; ++I)
+	{
+		Params->pressureIn = CreateTexture(GraphBuilder, Pressure[READ]);
+		Params->outputFloat = CreateUAV(GraphBuilder, Pressure[WRITE]);
+		
+		GraphBuilder.AddPass(
+			RDG_EVENT_NAME("Pressure"),
+			Params,
+			ERDGPassFlags::AsyncCompute,
+			[&Params, Shader, GroupCount](FRHIComputeCommandList& RHICmdList)
+			{
+				FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
+			});
+
+		SwapBuffer(Pressure);
+	}
 }
 
 void FFireSimulationModule::DoProjection(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config)
@@ -316,7 +476,7 @@ void FFireSimulationModule::ClearAllBuffer(FRDGBuilder& GraphBuilder)
 	}
 }
 
-void FFireSimulationModule::ClearBuffer(FRDGBuilder& GraphBuilder, FIntVector GroupCount, const FShaderBuffer& Buffer)
+void FFireSimulationModule::ClearBuffer(FRDGBuilder& GraphBuilder, FIntVector GroupCount, FShaderBuffer& Buffer)
 {
 	if (Buffer.Format == PF_R16F)
 	{
@@ -325,11 +485,14 @@ void FFireSimulationModule::ClearBuffer(FRDGBuilder& GraphBuilder, FIntVector Gr
 
 		TShaderMapRef<FFireShaderClearFloatCS> ComputeShader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
 		
-		GraphBuilder.AddPass(RDG_EVENT_NAME("ClearFloatBuffer"), Params, ERDGPassFlags::AsyncCompute,
+		GraphBuilder.AddPass(
+			RDG_EVENT_NAME("ClearFloatBuffer"),
+			Params,
+			ERDGPassFlags::AsyncCompute,
 			[&Params, ComputeShader, GroupCount](FRHIComputeCommandList& RHICmdList)
-						{
-							FComputeShaderUtils::Dispatch(RHICmdList, ComputeShader, *Params, GroupCount);
-						});
+			{
+				FComputeShaderUtils::Dispatch(RHICmdList, ComputeShader, *Params, GroupCount);
+			});
 	}
 	else
 	{
@@ -338,7 +501,10 @@ void FFireSimulationModule::ClearBuffer(FRDGBuilder& GraphBuilder, FIntVector Gr
 
 		TShaderMapRef<FFireShaderClearFloat4CS> ComputeShader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
 		
-		GraphBuilder.AddPass(RDG_EVENT_NAME("ClearFloat4Buffer"), Params, ERDGPassFlags::AsyncCompute,
+		GraphBuilder.AddPass(
+			RDG_EVENT_NAME("ClearFloat4Buffer"),
+			Params,
+			ERDGPassFlags::AsyncCompute,
 			[&Params, ComputeShader, GroupCount](FRHIComputeCommandList& RHICmdList)
 						{
 							FComputeShaderUtils::Dispatch(RHICmdList, ComputeShader, *Params, GroupCount);

@@ -32,6 +32,7 @@ public:
 private:
 	struct FShaderBuffer
 	{
+		TRefCountPtr<IPooledRenderTarget> RenderTarget;
 		EPixelFormat Format = PF_FloatRGBA;
 		FIntVector Resolution = FIntVector::ZeroValue;
 		FIntVector Bounds = FIntVector::ZeroValue;
@@ -42,26 +43,26 @@ private:
 	};
 	
 	void DispatchRenderThread(float TimeStep, const FFireSimulationConfig& Config, FRHICommandListImmediate& CommandList);
-	static FRDGTextureRef CreateTexture(FRDGBuilder& GraphBuilder, const FShaderBuffer& Buffer);
-	static FRDGTextureUAVRef CreateUAV(FRDGBuilder& GraphBuilder, const FShaderBuffer& Buffer);
+	static FRDGTextureRef CreateTexture(FRDGBuilder& GraphBuilder, FShaderBuffer& Buffer);
+	static FRDGTextureUAVRef CreateUAV(FRDGBuilder& GraphBuilder, FShaderBuffer& Buffer);
 	static void SwapBuffer(FShaderBuffer Buffer[2]);
 
 	void AdvectFluid(FRDGBuilder& GraphBuilder, float TimeStep, const FFireSimulationConfig& Config);
 	void AdvectVelocity(FRDGBuilder& GraphBuilder, float TimeStep, const FFireSimulationConfig& Config);
 
-	void ApplyBuoyancy(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
-	void HandleExtinguish(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
+	void ApplyBuoyancy(FRDGBuilder& GraphBuilder, float TimeStep, const FFireSimulationConfig& Config);
+	void HandleExtinguish(FRDGBuilder& GraphBuilder, float TimeStep, const FFireSimulationConfig& Config);
 
 	void CalculateVorticity(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
 
-	void UpdateConfinement(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
+	void UpdateConfinement(FRDGBuilder& GraphBuilder, float TimeStep, const FFireSimulationConfig& Config);
 
 	void CalculateDivergence(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
 	void SolvePressure(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
 	void DoProjection(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
 
 	void ClearAllBuffer(FRDGBuilder& GraphBuilder);
-	static void ClearBuffer(FRDGBuilder& GraphBuilder, FIntVector3 Resolution, const FShaderBuffer& Buffer);
+	static void ClearBuffer(FRDGBuilder& GraphBuilder, FIntVector3 GroupCount, FShaderBuffer& Buffer);
 
 	FVector3f LocalSize = FVector3f::ZeroVector;
 	FVector2f TScale = FVector2f::ZeroVector;
