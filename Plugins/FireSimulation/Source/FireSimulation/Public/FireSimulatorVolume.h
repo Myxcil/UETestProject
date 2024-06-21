@@ -20,7 +20,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 	FFireSimulationConfig Config;
 	UPROPERTY(EditAnywhere)
-	FVector3f Size = { 10000.0f, 10000.0f, 10000.0f };
+	FVector VolumeSize = { 1000.0f, 1000.0, 1000.0 };
 	
 	// Called when the game starts
 	virtual void BeginPlay() override;

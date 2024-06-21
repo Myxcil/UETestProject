@@ -5,9 +5,9 @@
 
 IMPLEMENT_GLOBAL_SHADER(FFireShaderClearFloatCS, "/FireSimulation/Private/FireSimulation.usf", "CSClearFloat", SF_Compute);
 IMPLEMENT_GLOBAL_SHADER(FFireShaderClearFloat4CS, "/FireSimulation/Private/FireSimulation.usf", "CSClearFloat4", SF_Compute);
-IMPLEMENT_GLOBAL_SHADER(FFireShaderAdvectVelocityCS, "/FireSimulation/Private/FireSimulation.usf", "CSAdvectVelocity", SF_Compute);
 IMPLEMENT_GLOBAL_SHADER(FFireShaderPrepareFluidDataAdvectionCS, "/FireSimulation/Private/FireSimulation.usf", "CSPrepareFluidDataAdvection", SF_Compute);
 IMPLEMENT_GLOBAL_SHADER(FFireShaderAdvectFluidDataCS, "/FireSimulation/Private/FireSimulation.usf", "CSAdvectFluidData", SF_Compute);
+IMPLEMENT_GLOBAL_SHADER(FFireShaderAdvectVelocityCS, "/FireSimulation/Private/FireSimulation.usf", "CSAdvectVelocity", SF_Compute);
 IMPLEMENT_GLOBAL_SHADER(FFireShaderBuoyancyCS, "/FireSimulation/Private/FireSimulation.usf", "CSBuoyancy", SF_Compute);
 IMPLEMENT_GLOBAL_SHADER(FFireShaderExtinguishCS, "/FireSimulation/Private/FireSimulation.usf", "CSExtinguish", SF_Compute);
 IMPLEMENT_GLOBAL_SHADER(FFireShaderVorticityCS, "/FireSimulation/Private/FireSimulation.usf", "CSVorticity", SF_Compute);

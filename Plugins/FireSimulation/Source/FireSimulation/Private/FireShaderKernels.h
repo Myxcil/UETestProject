@@ -38,24 +38,6 @@ public:
 	END_SHADER_PARAMETER_STRUCT()
 };
 
-class FFireShaderAdvectVelocityCS : public FFireShaderBaseCS
-{
-public:
-	DECLARE_GLOBAL_SHADER(FFireShaderAdvectVelocityCS);
-	SHADER_USE_PARAMETER_STRUCT(FFireShaderAdvectVelocityCS, FFireShaderBaseCS);
-
-	BEGIN_SHADER_PARAMETER_STRUCT(FParameters, )
-		SHADER_PARAMETER(float, Forward)
-		SHADER_PARAMETER(FVector3f, Dissipation)
-		SHADER_PARAMETER(FVector3f, WorldToGrid)
-		SHADER_PARAMETER(FVector3f, RcpVelocitySize)
-		SHADER_PARAMETER_SAMPLER(SamplerState, _LinearClamp)
-		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, velocityIn)
-		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, obstaclesIn)
-		SHADER_PARAMETER_UAV(RWTexture3D<float4>, outputFloat4)
-	END_SHADER_PARAMETER_STRUCT()
-};
-
 class FFireShaderPrepareFluidDataAdvectionCS : public FFireShaderBaseCS
 {
 public:
@@ -65,8 +47,6 @@ public:
 	BEGIN_SHADER_PARAMETER_STRUCT(FParameters, )
 		SHADER_PARAMETER(FVector2f, TScale)
 		SHADER_PARAMETER(float, Forward)
-		SHADER_PARAMETER(FVector4f, FluidDissipation)
-		SHADER_PARAMETER(FVector4f, FluidDecay)
 		SHADER_PARAMETER(FVector3f, WorldToGrid)
 		SHADER_PARAMETER(FVector3f, RcpVelocitySize)
 		SHADER_PARAMETER(FVector3f, RcpFluidSize)
@@ -74,7 +54,7 @@ public:
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, velocityIn)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, phiIn)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, obstaclesIn)
-		SHADER_PARAMETER_UAV(RWTexture3D<float4>, outputFloat4)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture3D<float4>, outputFloat4)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -99,7 +79,25 @@ public:
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, phi0)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, phi1)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, obstaclesIn)
-		SHADER_PARAMETER_UAV(RWTexture3D<float4>, outputFloat4)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture3D<float4>, outputFloat4)
+	END_SHADER_PARAMETER_STRUCT()
+};
+
+class FFireShaderAdvectVelocityCS : public FFireShaderBaseCS
+{
+public:
+	DECLARE_GLOBAL_SHADER(FFireShaderAdvectVelocityCS);
+	SHADER_USE_PARAMETER_STRUCT(FFireShaderAdvectVelocityCS, FFireShaderBaseCS);
+
+	BEGIN_SHADER_PARAMETER_STRUCT(FParameters, )
+		SHADER_PARAMETER(float, Forward)
+		SHADER_PARAMETER(FVector3f, Dissipation)
+		SHADER_PARAMETER(FVector3f, WorldToGrid)
+		SHADER_PARAMETER(FVector3f, RcpVelocitySize)
+		SHADER_PARAMETER_SAMPLER(SamplerState, _LinearClamp)
+		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, velocityIn)
+		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, obstaclesIn)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture3D<float4>, outputFloat4)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -119,7 +117,7 @@ public:
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, fluidDataIn)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, obstaclesIn)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, velocityIn)
-		SHADER_PARAMETER_UAV(RWTexture3D<float4>, outputFloat4)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture3D<float4>, outputFloat4)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -139,7 +137,7 @@ public:
 		SHADER_PARAMETER_SAMPLER(SamplerState, _LinearClamp)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, fluidDataIn)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, obstaclesIn)
-		SHADER_PARAMETER_UAV(RWTexture3D<float4>, outputFloat4)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture3D<float4>, outputFloat4)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -152,7 +150,7 @@ public:
 	BEGIN_SHADER_PARAMETER_STRUCT(FParameters, )
 		SHADER_PARAMETER(FIntVector3, VelocityBounds)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, velocityIn)
-		SHADER_PARAMETER_UAV(RWTexture3D<float4>, outputFloat4)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture3D<float4>, outputFloat4)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -167,7 +165,7 @@ public:
 		SHADER_PARAMETER(FIntVector3, VelocityBounds)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, velocityIn)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, vorticityIn)
-		SHADER_PARAMETER_UAV(RWTexture3D<float4>, outputFloat4)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture3D<float4>, outputFloat4)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -183,7 +181,7 @@ public:
 		SHADER_PARAMETER_SAMPLER(SamplerState, _LinearClamp)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, velocityIn)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, obstaclesIn)
-		SHADER_PARAMETER_UAV(RWTexture<float>, outputFloat)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture<float>, outputFloat)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -198,7 +196,7 @@ public:
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float>, pressureIn)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float>, divergenceIn)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, obstaclesIn)
-		SHADER_PARAMETER_UAV(RWTexture<float>, outputFloat)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture<float>, outputFloat)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -213,6 +211,6 @@ public:
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, obstaclesIn)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float>, pressureIn)
 		SHADER_PARAMETER_RDG_TEXTURE(Texture3D<float4>, velocityIn)
-		SHADER_PARAMETER_UAV(RWTexture<float4>, outputFloat4)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture<float4>, outputFloat4)
 	END_SHADER_PARAMETER_STRUCT()
 };

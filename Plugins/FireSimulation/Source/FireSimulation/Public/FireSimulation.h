@@ -8,7 +8,7 @@
 
 class UTextureRenderTargetVolume;
 
-class FIRESIMULATION_API FFireSimulationModule : public IModuleInterface
+class FIRESIMULATION_API FFireSimulationModule final : public IModuleInterface
 {
 public:
 	static FFireSimulationModule& Get()
@@ -25,51 +25,59 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
-	void Initialize(UWorld* World, FVector3f Size, const FFireSimulationConfig& Config);
+	void Initialize(UWorld* World, FVector Size, const FFireSimulationConfig& Config);
 	void Deinitialize();
-	
-	void Dispatch(float TimeStep);
-	
-
-protected:
-	void DispatchRenderThread(float TimeStep, FRHICommandListImmediate& CommandList);
+	void Dispatch(float TimeStep, const FFireSimulationConfig& Config);
 
 private:
-	void AdvectFluid(float TimeStep);
-	void AdvectVelocity(float TimeStep);
+	struct FShaderBuffer
+	{
+		EPixelFormat Format = PF_FloatRGBA;
+		FIntVector Resolution = FIntVector::ZeroValue;
+		FIntVector Bounds = FIntVector::ZeroValue;
+		FVector3f RcpSize = FVector3f::ZeroVector;
+		const TCHAR* DebugName = nullptr;
 
-	void ApplyBuoyancy();
-	void HandleExtinguish();
+		void Initialize(const FIntVector Res, const bool bIsFloat4, const TCHAR* Name);
+	};
+	
+	void DispatchRenderThread(float TimeStep, const FFireSimulationConfig& Config, FRHICommandListImmediate& CommandList);
+	static FRDGTextureRef CreateTexture(FRDGBuilder& GraphBuilder, const FShaderBuffer& Buffer);
+	static FRDGTextureUAVRef CreateUAV(FRDGBuilder& GraphBuilder, const FShaderBuffer& Buffer);
+	static void SwapBuffer(FShaderBuffer Buffer[2]);
 
-	void CalculateVorticity();
+	void AdvectFluid(FRDGBuilder& GraphBuilder, float TimeStep, const FFireSimulationConfig& Config);
+	void AdvectVelocity(FRDGBuilder& GraphBuilder, float TimeStep, const FFireSimulationConfig& Config);
 
-	void UpdateConfinement();
+	void ApplyBuoyancy(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
+	void HandleExtinguish(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
 
-	void CalculateDivergence();
-	void SolvePressure();
-	void DoProjection();
+	void CalculateVorticity(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
+
+	void UpdateConfinement(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
+
+	void CalculateDivergence(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
+	void SolvePressure(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
+	void DoProjection(FRDGBuilder& GraphBuilder, const FFireSimulationConfig& Config);
 
 	void ClearAllBuffer(FRDGBuilder& GraphBuilder);
-	void ClearBuffer(FRDGBuilder& GraphBuilder, FIntVector3 Resolution, UTextureRenderTargetVolume* Target);
-
-private:
-	FIntVector3 VelocityResolution = FIntVector3::ZeroValue;
-	FIntVector3 VelocityBounds = FIntVector3::ZeroValue;
-	FVector3f RcpVelocitySize = FVector3f::ZeroVector;
-
-	FIntVector3 FluidResolution = FIntVector3::ZeroValue;
-	FIntVector3 FluidBounds = FIntVector3::ZeroValue;
-	FVector3f RcpFluidSize = FVector3f::ZeroVector;
+	static void ClearBuffer(FRDGBuilder& GraphBuilder, FIntVector3 Resolution, const FShaderBuffer& Buffer);
 
 	FVector3f LocalSize = FVector3f::ZeroVector;
 	FVector2f TScale = FVector2f::ZeroVector;
 	FVector3f WorldToGrid = FVector3f::ZeroVector;
-
-	int32 NumPressureIterations = 0;
-
-	bool bBuffersInitialized = false;
-	UTextureRenderTargetVolume* RTObstacles;
 	
+	bool bBuffersInitialized = false;
+	FShaderBuffer Obstacles;
+	FShaderBuffer Vorticity;
+	FShaderBuffer Divergence;
+	FShaderBuffer Velocity[2];
+	FShaderBuffer Pressure[2];
+	FShaderBuffer FluidData[2];
+	FShaderBuffer Phi[2];
+	
+	FIntVector DefaultThreadCount = FIntVector::ZeroValue;
+	FIntVector TransportThreadCount = FIntVector::ZeroValue;
 
 	bool bRestartSimulation = true;
 };

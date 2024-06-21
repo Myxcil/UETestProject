@@ -22,7 +22,7 @@ void UFireSimulatorVolume::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FFireSimulationModule::Get().Initialize(GetWorld(), Size, Config);
+	FFireSimulationModule::Get().Initialize(GetWorld(), VolumeSize, Config);
 }
 
 void UFireSimulatorVolume::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -38,6 +38,6 @@ void UFireSimulatorVolume::TickComponent(float DeltaTime, ELevelTick TickType, F
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FFireSimulationModule::Get().Dispatch(DeltaTime);
+	FFireSimulationModule::Get().Dispatch(DeltaTime, Config);
 }
 
