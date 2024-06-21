@@ -23,7 +23,7 @@ public:
 	SHADER_USE_PARAMETER_STRUCT(FFireShaderClearFloatCS, FFireShaderBaseCS);
 
 	BEGIN_SHADER_PARAMETER_STRUCT(FParameters, )
-		SHADER_PARAMETER_UAV(RWTexture3D<float>, outputFloat)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture3D<float>, outputFloat)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -34,7 +34,7 @@ public:
 	SHADER_USE_PARAMETER_STRUCT(FFireShaderClearFloat4CS, FFireShaderBaseCS);
 
 	BEGIN_SHADER_PARAMETER_STRUCT(FParameters, )
-		SHADER_PARAMETER_UAV(RWTexture3D<float4>, outputFloat4)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture3D<float4>, outputFloat4)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
