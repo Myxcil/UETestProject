@@ -50,6 +50,5 @@ private:
 
 	TRefCountPtr<IPooledRenderTarget> PrevVelocity;
 	TRefCountPtr<IPooledRenderTarget> PrevFluid;
-	TRefCountPtr<IPooledRenderTarget> PrevPressure;
 	TRefCountPtr<IPooledRenderTarget> Obstacles;
 };
