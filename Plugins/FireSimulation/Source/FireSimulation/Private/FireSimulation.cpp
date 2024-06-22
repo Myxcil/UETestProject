@@ -154,7 +154,7 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 					FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
 				});
 
-			GraphBuilder.QueueTextureExtraction(VelocityTexture, &PrevVelocity);
+			GraphBuilder.QueueTextureExtraction(VelocityTexture, &PrevVelocity, ERDGResourceExtractionFlags::AllowTransient);
 		}
 
 		if (!PrevFluid.IsValid())
@@ -176,7 +176,7 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 					FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
 				});
 
-			GraphBuilder.QueueTextureExtraction(FluidTexture, &PrevFluid);
+			GraphBuilder.QueueTextureExtraction(FluidTexture, &PrevFluid, ERDGResourceExtractionFlags::AllowTransient);
 		}
 
 		if (!Obstacles.IsValid())
@@ -207,11 +207,31 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 			FRDGTextureRef PrevFluidDataTexture = GraphBuilder.RegisterExternalTexture(PrevFluid);
 			FRDGTextureRef ObstaclesTexture = GraphBuilder.RegisterExternalTexture(Obstacles);
 
-			FRDGTextureRef Phi0 = GraphBuilder.CreateTexture(CreateTextureDesc(Fluid.Resolution, true), TEXT("Phi0"));
-			FRDGTextureRef Phi1 = GraphBuilder.CreateTexture(CreateTextureDesc(Fluid.Resolution, true), TEXT("Phi1"));
+			FRDGTextureRef Phi[2] =
+			{
+				GraphBuilder.CreateTexture(CreateTextureDesc(Fluid.Resolution, true), TEXT("Phi0")),
+				GraphBuilder.CreateTexture(CreateTextureDesc(Fluid.Resolution, true), TEXT("Phi1"))
+			};
 
-			FRDGTextureRef TmpFluid4[2] = { nullptr, nullptr };
-			FRDGTextureRef TmpVelocity4[3] = { nullptr, nullptr, nullptr };
+			FRDGTextureRef Divergence = GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, false), TEXT("Divergence"));; 
+
+			FRDGTextureRef Pressure[2] =
+			{
+				GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, false), TEXT("Pressure0")),
+				GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, false), TEXT("Pressure1"))
+			};
+
+			FRDGTextureRef TmpFluid4[2] =
+			{
+				GraphBuilder.CreateTexture(CreateTextureDesc(Fluid.Resolution, true), TEXT("TmpFLuid4_0")),
+				GraphBuilder.CreateTexture(CreateTextureDesc(Fluid.Resolution, true), TEXT("TmpFLuid4_1")),
+			};
+			FRDGTextureRef TmpVelocity4[3] =
+			{
+				GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, true), TEXT("TmpVelocity4_0")),
+				GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, true), TEXT("TmpVelocity4_1")),
+				GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, true), TEXT("TmpVelocity4_2")),
+			};
 			
 			// Advect Fluid
 			{
@@ -228,7 +248,7 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 					ParamsFwd->obstaclesIn = GraphBuilder.CreateSRV(ObstaclesTexture);
 					ParamsFwd->velocityIn = GraphBuilder.CreateSRV(PrevVelocityTexture);
 					ParamsFwd->phiIn = GraphBuilder.CreateSRV(PrevFluidDataTexture);
-					ParamsFwd->outputFloat4 = GraphBuilder.CreateUAV(Phi1);
+					ParamsFwd->outputFloat4 = GraphBuilder.CreateUAV(Phi[1]);
 
 					TShaderMapRef<FFireShaderPrepareFluidDataAdvectionCS> PrepareFluidDataAdvectCS(GetGlobalShaderMap(GMaxRHIFeatureLevel));
 					const auto GroupCount = Fluid.ThreadCount;
@@ -255,8 +275,8 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 				
 					ParamsBack->obstaclesIn = GraphBuilder.CreateSRV(ObstaclesTexture);
 					ParamsBack->velocityIn = GraphBuilder.CreateSRV(PrevVelocityTexture);
-					ParamsBack->phiIn = GraphBuilder.CreateSRV(Phi1);
-					ParamsBack->outputFloat4 = GraphBuilder.CreateUAV(Phi0);
+					ParamsBack->phiIn = GraphBuilder.CreateSRV(Phi[1]);
+					ParamsBack->outputFloat4 = GraphBuilder.CreateUAV(Phi[0]);
 
 					TShaderMapRef<FFireShaderPrepareFluidDataAdvectionCS> PrepareFluidDataAdvectCS(GetGlobalShaderMap(GMaxRHIFeatureLevel));
 					const auto GroupCount = Fluid.ThreadCount;
@@ -273,8 +293,6 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 
 				// Advect fluid
 				{
-					TmpFluid4[0] = GraphBuilder.CreateTexture(CreateTextureDesc(Fluid.Resolution, true), TEXT("TmpFluid4_0"));
-			
 					FFireShaderAdvectFluidDataCS::FParameters* AdvectParams = GraphBuilder.AllocParameters<FFireShaderAdvectFluidDataCS::FParameters>();
 					AdvectParams->TScale = TScale;
 					AdvectParams->Forward = TimeStep;
@@ -285,12 +303,11 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 					AdvectParams->RcpFluidSize = Fluid.RcpSize;
 					AdvectParams->FluidBounds = Fluid.Bounds;
 					AdvectParams->_LinearClamp = TStaticSamplerState<>::GetRHI();
-					AdvectParams->obstaclesIn = GraphBuilder.CreateSRV(ObstaclesTexture);
 					AdvectParams->velocityIn = GraphBuilder.CreateSRV(PrevVelocityTexture);
 					AdvectParams->fluidDataIn = GraphBuilder.CreateSRV(PrevFluidDataTexture);
-					AdvectParams->phi0 = GraphBuilder.CreateSRV(Phi0);
-					AdvectParams->phi1 = GraphBuilder.CreateSRV(Phi1);
-
+					AdvectParams->phi0 = GraphBuilder.CreateSRV(Phi[0]);
+					AdvectParams->phi1 = GraphBuilder.CreateSRV(Phi[1]);
+					AdvectParams->obstaclesIn = GraphBuilder.CreateSRV(ObstaclesTexture);
 					AdvectParams->outputFloat4 = GraphBuilder.CreateUAV(TmpFluid4[0]);
 
 					TShaderMapRef<FFireShaderAdvectFluidDataCS> FluidDataAdvectCS(GetGlobalShaderMap(GMaxRHIFeatureLevel));
@@ -310,8 +327,6 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 			// Advect Velocity
 			// TmpFluid4[0] = current fluid state  
 			{
-				TmpVelocity4[0] =  GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, true), TEXT("TmpVelocity4_0"));
-
 				FFireShaderAdvectVelocityCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderAdvectVelocityCS::FParameters>();
 				Params->Forward = TimeStep;
 				Params->Dissipation = Config.Dissipation;
@@ -339,13 +354,12 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 			// TmpFluid4[0] = current fluid state
 			// TmpVelocity4[0] = current velocity state
 			{
-				TmpVelocity4[1] =  GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, true), TEXT("TmpVelocity4_1"));
-				
 				FFireShaderBuoyancyCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderBuoyancyCS::FParameters>();
 				Params->Buoyancy = Config.Buoyancy * TimeStep;
 				Params->Weight = Config.DensityWeight;
 				Params->AmbientTemperature = Config.AmbientTemperature;
 				Params->Up = FVector3f(FVector::UpVector);
+				Params->RcpVelocitySize = Velocity.RcpSize;
 				Params->_LinearClamp = Params->_LinearClamp = TStaticSamplerState<>::GetRHI();
 				Params->fluidDataIn = GraphBuilder.CreateSRV(TmpFluid4[0]);
 				Params->velocityIn = GraphBuilder.CreateSRV(TmpVelocity4[0]);
@@ -369,12 +383,13 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 			// TmpFluid4[0] = current fluid state
 			// TmpVelocity4[1] = current velocity state
 			{
-				TmpFluid4[1] = GraphBuilder.CreateTexture(CreateTextureDesc(Fluid.Resolution, true), TEXT("TmpFluid4_1"));
-				
 				FFireShaderExtinguishCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderExtinguishCS::FParameters>();
+				Params->TScale = TScale;
 				Params->Amount = Config.ReactionAmount;
 				Params->Extinguishment = FVector3f(Config.VaporCooling, Config.VaporExtinguish, Config.ReactionExtinguish);
 				Params->TempDistribution = Config.TemperatureDistribution * TimeStep;
+				Params->FluidBounds = Fluid.Bounds;
+				Params->RcpVelocitySize = Velocity.RcpSize;
 				Params->_LinearClamp = Params->_LinearClamp = TStaticSamplerState<>::GetRHI();
 				Params->fluidDataIn = GraphBuilder.CreateSRV(TmpFluid4[0]);
 				Params->obstaclesIn = GraphBuilder.CreateSRV(ObstaclesTexture);
@@ -400,6 +415,7 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 			// TmpVelocity4[1] = current velocity state
 			{
 				FFireShaderVorticityCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderVorticityCS::FParameters>();
+				Params->VelocityBounds = Velocity.Bounds;
 				Params->velocityIn = GraphBuilder.CreateSRV(TmpVelocity4[1]);
 				Params->outputFloat4 = GraphBuilder.CreateUAV(TmpVelocity4[0]);
 	
@@ -420,10 +436,9 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 			// TmpVelocity4[1] = current velocity state
 			// TmpVelocity4[0] = vorticity result
 			{
-				TmpVelocity4[2] = GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, true), TEXT("TmpVelocity4_2"));
-				
 				FFireShaderConfinementCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderConfinementCS::FParameters>();
 				Params->Strength = Config.VorticityStrength * TimeStep;
+				Params->VelocityBounds = Velocity.Bounds;
 				Params->velocityIn = GraphBuilder.CreateSRV(TmpVelocity4[1]);
 				Params->vorticityIn = GraphBuilder.CreateSRV(TmpVelocity4[0]);
 				Params->outputFloat4 = GraphBuilder.CreateUAV(TmpVelocity4[2]);
@@ -444,9 +459,10 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 			// Calculate Divergence
 			// TmpVelocity4[0] = vorticity result
 			// TmpVelocity4[2] = current velocity state
-			FRDGTextureRef Divergence = GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, false), TEXT("TmpVelocity1_0"));; 
 			{
 				FFireShaderDivergenceCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderDivergenceCS::FParameters>();
+				Params->VelocityBounds = Velocity.Bounds;
+				Params->RcpVelocitySize = Velocity.RcpSize;
 				Params->_LinearClamp = Params->_LinearClamp = TStaticSamplerState<>::GetRHI();
 				Params->velocityIn = GraphBuilder.CreateSRV(TmpVelocity4[2]);
 				Params->obstaclesIn = GraphBuilder.CreateSRV(ObstaclesTexture);
@@ -468,23 +484,19 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 			// Solve Pressure
 			// TmpVelocity4[2] = current velocity state
 			// TmpVelocity1[0] = divergence result
-			FRDGTextureRef Pressure[2] =
-			{
-				GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, false), TEXT("Pressure0")),
-				GraphBuilder.CreateTexture(CreateTextureDesc(Velocity.Resolution, false), TEXT("Pressure1"))
-			};
 			{
 				if (Config.NumPressureIterations > 0)
 				{
 					{
-						FFireShaderClearFloatCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderClearFloatCS::FParameters>();
-						Params->outputFloat = GraphBuilder.CreateUAV(Pressure[0]);
-						
-						TShaderMapRef<FFireShaderClearFloatCS> Shader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+						TShaderMapRef<FFireShaderPreparePressureCS> Shader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
 						const auto GroupCount = Velocity.ThreadCount;
 
+						FFireShaderPreparePressureCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderPreparePressureCS::FParameters>();
+						Params->divergenceIn = GraphBuilder.CreateSRV(Divergence);
+						Params->outputFloat = GraphBuilder.CreateUAV(Pressure[0]);
+
 						GraphBuilder.AddPass(
-							RDG_EVENT_NAME("PressureClear"),
+							RDG_EVENT_NAME("PreparePressure"),
 							Params,
 							ERDGPassFlags::AsyncCompute,
 							[&Params, Shader, GroupCount](FRHIComputeCommandList& RHICmdList)
@@ -492,19 +504,23 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 								FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
 							});
 					}
-					
+
 					{
 						TShaderMapRef<FFireShaderPressureCS> Shader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
 						const auto GroupCount = Velocity.ThreadCount;
-	
-						for(int32 I=0; I < Config.NumPressureIterations; ++I)
+
+						int32 SourceIndex = 0;
+						int32 DestIndex = 1;
+					
+						for(int32 I=1; I < Config.NumPressureIterations; ++I)
 						{
 							FFireShaderPressureCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderPressureCS::FParameters>();
+							Params->VelocityBounds = Velocity.Bounds;
 							Params->obstaclesIn = GraphBuilder.CreateSRV(ObstaclesTexture);
 							Params->divergenceIn = GraphBuilder.CreateSRV(Divergence);
-							Params->pressureIn = GraphBuilder.CreateSRV(Pressure[0]);
-							Params->outputFloat = GraphBuilder.CreateUAV(Pressure[1]);
-					
+							Params->pressureIn = GraphBuilder.CreateSRV(Pressure[SourceIndex]);
+							Params->outputFloat = GraphBuilder.CreateUAV(Pressure[DestIndex]);
+				
 							GraphBuilder.AddPass(
 								RDG_EVENT_NAME("Pressure"),
 								Params,
@@ -514,7 +530,7 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 									FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
 								});
 
-							Swap(Pressure[0], Pressure[1]);
+							Swap(SourceIndex, DestIndex);
 						}
 					}
 				}
@@ -524,6 +540,7 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 			// TmpVelocity4[2] = current velocity state
 			{
 				FFireShaderProjectionCS::FParameters* Params = GraphBuilder.AllocParameters<FFireShaderProjectionCS::FParameters>();
+				Params->VelocityBounds = Velocity.Bounds;
 				Params->obstaclesIn = GraphBuilder.CreateSRV(ObstaclesTexture);
 				Params->pressureIn = GraphBuilder.CreateSRV(Pressure[0]);
 				Params->velocityIn = GraphBuilder.CreateSRV(TmpVelocity4[2]);
@@ -541,7 +558,7 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 						FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
 					});
 
-				GraphBuilder.QueueTextureExtraction(TmpVelocity4[0], &PrevVelocity);
+				GraphBuilder.QueueTextureExtraction(TmpVelocity4[0], &PrevVelocity, ERDGResourceExtractionFlags::AllowTransient);
 			}
 			/**/
 		}

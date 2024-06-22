@@ -185,6 +185,18 @@ public:
 	END_SHADER_PARAMETER_STRUCT()
 };
 
+class FFireShaderPreparePressureCS : public FFireShaderBaseCS
+{
+public:
+	DECLARE_GLOBAL_SHADER(FFireShaderPreparePressureCS);
+	SHADER_USE_PARAMETER_STRUCT(FFireShaderPreparePressureCS, FFireShaderBaseCS);
+
+	BEGIN_SHADER_PARAMETER_STRUCT(FParameters, )
+		SHADER_PARAMETER_RDG_TEXTURE_SRV(Texture3D<float>, divergenceIn)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture<float>, outputFloat)
+	END_SHADER_PARAMETER_STRUCT()
+};
+
 class FFireShaderPressureCS : public FFireShaderBaseCS
 {
 public:

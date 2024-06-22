@@ -348,6 +348,13 @@ float getNeighborPressure(float pC, int3 id, int dx, int dy, int dz)
 	return pressureIn[id];
 }
 
+#pragma kernel CSPreparePressure
+[numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
+void CSPreparePressure(int3 id : SV_DispatchThreadID)
+{
+	outputFloat[id] = -divergenceIn[id] / 6.0f;
+}
+
 #pragma kernel CSPressure
 [numthreads(NUM_THREADS_X,NUM_THREADS_Y,NUM_THREADS_Z)]
 void CSPressure(int3 id : SV_DispatchThreadID)
@@ -502,90 +509,4 @@ void CSCopyTemperature(int3 id : SV_DispatchThreadID)
 	}
 
 	temperatureOut[id.xy] = maxT;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------
-RWTexture3D<float> lightTexture;
-float reactionThreshold;
-float reactionScale;
-
-#pragma kernel CSEvaluateLighting
-[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
-void CSEvaluateLighting(int3 id : SV_DispatchThreadID)
-{
-	float3 fireId = float3(RcpLightSize * id);
-	float4 trdv = fluidDataIn.SampleLevel(_LinearClamp, fireId, 0);
-	float reaction = max(0, trdv.y - reactionThreshold);
-	lightTexture[id] = reaction * reactionScale;
-}
-
-Texture3D<float> blurIn;
-RWTexture3D<float> blurOut;
-int3 blurStep;
-
-float sampleLightTexture(int3 id, int3 offset)
-{
-	int3 sampleId = clamp(id + offset, 0, LightBounds);
-	return blurIn[sampleId];
-}
-
-#pragma kernel CSBlur
-[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
-void CSBlur(int3 id : SV_DispatchThreadID)
-{
-	float sum = 0;
-	sum += sampleLightTexture(id, -4 * blurStep) * 0.0162162162;
-	sum += sampleLightTexture(id, -3 * blurStep) * 0.0540540541;
-	sum += sampleLightTexture(id, -2 * blurStep) * 0.1216216216;
-	sum += sampleLightTexture(id, -1 * blurStep) * 0.1945945946;
-	sum += blurIn[id] * 0.2270270270;
-	sum += sampleLightTexture(id, 1 * blurStep) * 0.1945945946;
-	sum += sampleLightTexture(id, 2 * blurStep) * 0.1216216216;
-	sum += sampleLightTexture(id, 3 * blurStep) * 0.0540540541;
-	sum += sampleLightTexture(id, 4 * blurStep) * 0.0162162162;
-	blurOut[id] = sum;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------
-// Load/Save buffers
-//--------------------------------------------------------------------------------------------------------------------------------------------------
-RWBuffer<float3> velocitySave;
-RWBuffer<float4> fluidSave;
-int3 coords;
-
-#pragma kernel CSSaveVelocity
-[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
-void CSSaveVelocity(int3 id : SV_DispatchThreadID)
-{
-	int idx = dot(id, coords);
-	velocitySave[idx] = velocityIn[id].xyz;
-}
-
-#pragma kernel CSSaveFluid
-[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
-void CSSaveFluid(int3 id : SV_DispatchThreadID)
-{
-	int idx = dot(id, coords);
-	fluidSave[idx] = fluidDataIn[id];
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------
-Buffer<float3> velocityLoad;
-Buffer<float4> fluidLoad;
-
-#pragma kernel CSLoadVelocity
-[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
-void CSLoadVelocity(int3 id : SV_DispatchThreadID)
-{
-	int idx = dot(id, coords);
-	outputFloat4[id] = float4(velocityLoad[idx], 0);
-}
-
-
-#pragma kernel CSLoadFluid
-[numthreads(NUM_THREADS_X, NUM_THREADS_Y, NUM_THREADS_Z)]
-void CSLoadFluid(int3 id : SV_DispatchThreadID)
-{
-	int idx = dot(id, coords);
-	outputFloat4[id] = fluidLoad[idx];
 }
