@@ -122,7 +122,8 @@ void FFireSimulationModule::Dispatch(float TimeStep, const FFireSimulationConfig
 
 FRDGTextureDesc CreateTextureDesc(FIntVector Res, bool bIsFloat4)
 {
-	return FRDGTextureDesc::Create3D(Res, bIsFloat4 ? PF_FloatRGBA : PF_R16F , EClearBinding::ENoneBound, ETextureCreateFlags::RenderTargetable|ETextureCreateFlags::ShaderResource|ETextureCreateFlags::UAV);
+	constexpr ETextureCreateFlags Flags = ETextureCreateFlags::RenderTargetable | ETextureCreateFlags::ShaderResource | ETextureCreateFlags::UAV;
+	return FRDGTextureDesc::Create3D(Res, bIsFloat4 ? PF_FloatRGBA : PF_R16F , EClearBinding::ENoneBound, Flags);
 }
 
 void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimulationConfig& Config, FRHICommandListImmediate& CommandList)
