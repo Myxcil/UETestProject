@@ -464,7 +464,7 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 						FComputeShaderUtils::Dispatch(RHICmdList, Shader, *Params, GroupCount);
 					});
 			}
-	
+
 			// Solve Pressure
 			// TmpVelocity4[2] = current velocity state
 			// TmpVelocity1[0] = divergence result
@@ -543,6 +543,7 @@ void FFireSimulationModule::DispatchRenderThread(float TimeStep, const FFireSimu
 
 				GraphBuilder.QueueTextureExtraction(TmpVelocity4[0], &PrevVelocity);
 			}
+			/**/
 		}
 	}
 	GraphBuilder.Execute();
